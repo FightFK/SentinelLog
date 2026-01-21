@@ -27,9 +27,11 @@ model SecurityLog {
   createdAt   DateTime  @default(now()) @map("created_at")
 
   // Relations
-  analysisResults   AnalysisResult[]
-  securityResponses SecurityResponse[]
-  securityIncidents SecurityIncident[]
+  analysisResults        AnalysisResult[]
+  securityResponses      SecurityResponse[]
+  securityIncidents      SecurityIncident[]
+  pendingAdminDecisions  PendingAdminDecision[]
+  autoAppliedRules       AutoAppliedRule[]
 
   @@index([timestamp])
   @@index([severity])
@@ -135,4 +137,71 @@ model MonitoringRule {
   @@index([ipAddress])
   @@index([active])
   @@map("monitoring_rules")
+}
+
+model PendingAdminDecision {
+  id         Int       @id @default(autoincrement())
+  logId      Int       @map("log_id")
+  analysisId Int       @map("analysis_id")
+  threatLevel String   @map("threat_level") @db.VarChar(50)
+  analysis   Json      @db.JsonB
+  status     String    @db.VarChar(50) // pending, resolved
+  createdAt  DateTime  @default(now()) @map("created_at")
+  resolvedAt DateTime? @map("resolved_at")
+
+  // Relations
+  log SecurityLog @relation(fields: [logId], references: [id], onDelete: Cascade)
+
+  @@index([logId])
+  @@index([status])
+  @@map("pending_admin_decisions")
+}
+
+model AdminDecision {
+  id           Int      @id @default(autoincrement())
+  logId        Int      @map("log_id")
+  alertId      Int      @map("alert_id")
+  action       String   @db.VarChar(50) // block, monitor, alert, ignore
+  reason       String?  @db.Text
+  duration     Int?     // in seconds for block action
+  threatLevel  String   @map("threat_level") @db.VarChar(50)
+  analysisData Json     @map("analysis_data") @db.JsonB
+  applied      Boolean  @default(false)
+  decidedAt    DateTime @default(now()) @map("decided_at")
+
+  @@index([logId])
+  @@index([action])
+  @@map("admin_decisions")
+}
+
+model AutoAppliedRule {
+  id               Int      @id @default(autoincrement())
+  logId            Int      @map("log_id")
+  sourceDecisionId Int      @map("source_decision_id")
+  similarity       Float
+  actionTaken      String   @map("action_taken") @db.VarChar(50)
+  executedAt       DateTime @default(now()) @map("executed_at")
+
+  // Relations
+  log SecurityLog @relation(fields: [logId], references: [id], onDelete: Cascade)
+
+  @@index([logId])
+  @@index([actionTaken])
+  @@map("auto_applied_rules")
+}
+
+model AdminNotification {
+  id               Int       @id @default(autoincrement())
+  alertId          Int       @map("alert_id")
+  logId            Int       @map("log_id")
+  type             String    @db.VarChar(50)
+  title            String    @db.VarChar(255)
+  message          String    @db.Text
+  notificationData Json      @map("notification_data") @db.JsonB
+  sentAt           DateTime  @default(now()) @map("sent_at")
+  readAt           DateTime? @map("read_at")
+
+  @@index([logId])
+  @@index([sentAt])
+  @@map("admin_notifications")
 }

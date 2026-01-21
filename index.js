@@ -7,7 +7,8 @@ const winston = require('winston');
 // Import routes
 const logsRoutes = require('./routes/logs');
 const analysisRoutes = require('./routes/analysis');
-const responseRoutes = require('./routes/response');
+const webhookRoutes = require('./routes/webhook');
+const adminRoutes = require('./routes/admin');
 
 // Initialize Express app
 const app = express();
@@ -56,7 +57,8 @@ app.get('/health', (req, res) => {
 // API routes
 app.use('/api/logs', logsRoutes);
 app.use('/api/analysis', analysisRoutes);
-app.use('/api/response', responseRoutes);
+app.use('/api/webhook', webhookRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
