@@ -1,0 +1,138 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [vector]
+}
+
+model SecurityLog {
+  id          Int       @id @default(autoincrement())
+  timestamp   DateTime  @default(now())
+  source      String    @db.VarChar(255)
+  severity    String    @db.VarChar(50)
+  eventType   String    @map("event_type") @db.VarChar(100)
+  description String?   @db.Text
+  ipAddress   String?   @map("ip_address") @db.Inet
+  userAgent   String?   @map("user_agent") @db.Text
+  rawLog      String?   @map("raw_log") @db.Text
+  metadata    Json?     @db.JsonB
+  embedding   String?   @db.Text // Store as text, pgvector extension
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  analysisResults   AnalysisResult[]
+  securityResponses SecurityResponse[]
+  securityIncidents SecurityIncident[]
+
+  @@index([timestamp])
+  @@index([severity])
+  @@index([eventType])
+  @@map("security_logs")
+}
+
+model AnalysisResult {
+  id              Int         @id @default(autoincrement())
+  logId           Int         @map("log_id")
+  analysisType    String      @map("analysis_type") @db.VarChar(100)
+  result          Json        @db.JsonB
+  confidence      Float?
+  threatLevel     String?     @map("threat_level") @db.VarChar(50)
+  recommendations Json?       @db.JsonB
+  analyzedAt      DateTime    @default(now()) @map("analyzed_at")
+
+  // Relations
+  securityLog SecurityLog @relation(fields: [logId], references: [id], onDelete: Cascade)
+
+  @@index([logId])
+  @@index([threatLevel])
+  @@map("analysis_results")
+}
+
+model SecurityResponse {
+  id              Int      @id @default(autoincrement())
+  logId           Int      @map("log_id")
+  threatLevel     String   @map("threat_level") @db.VarChar(50)
+  actionsExecuted Json     @map("actions_executed") @db.JsonB
+  autoBlocked     Boolean  @map("auto_blocked") @default(false)
+  executedAt      DateTime @default(now()) @map("executed_at")
+
+  // Relations
+  securityLog SecurityLog @relation(fields: [logId], references: [id], onDelete: Cascade)
+
+  @@index([logId])
+  @@index([threatLevel])
+  @@map("security_responses")
+}
+
+model BlockedIP {
+  id          Int       @id @default(autoincrement())
+  ipAddress   String    @map("ip_address") @db.Inet
+  blockedAt   DateTime  @map("blocked_at") @default(now())
+  expiresAt   DateTime  @map("expires_at")
+  unblockedAt DateTime? @map("unblocked_at")
+  reason      String?   @db.Text
+  active      Boolean   @default(true)
+
+  @@index([ipAddress])
+  @@index([active])
+  @@map("blocked_ips")
+}
+
+model SecurityIncident {
+  id              Int       @id @default(autoincrement())
+  logId           Int       @map("log_id")
+  incidentType    String    @map("incident_type") @db.VarChar(100)
+  severity        String    @db.VarChar(50)
+  description     String    @db.Text
+  ipAddress       String?   @map("ip_address") @db.Inet
+  indicators      Json      @db.JsonB
+  recommendations Json      @db.JsonB
+  status          String    @db.VarChar(50) // open, investigating, resolved, closed
+  resolution      String?   @db.Text
+  detectedAt      DateTime  @map("detected_at")
+  closedAt        DateTime? @map("closed_at")
+
+  // Relations
+  log SecurityLog @relation(fields: [logId], references: [id], onDelete: Cascade)
+
+  @@index([logId])
+  @@index([status])
+  @@index([severity])
+  @@map("security_incidents")
+}
+
+model AdminAlert {
+  id       Int      @id @default(autoincrement())
+  logId    Int      @map("log_id")
+  severity String   @db.VarChar(50)
+  message  String   @db.Text
+  alertData Json    @map("alert_data") @db.JsonB
+  sentAt   DateTime @map("sent_at") @default(now())
+  readAt   DateTime? @map("read_at")
+
+  @@index([logId])
+  @@index([sentAt])
+  @@map("admin_alerts")
+}
+
+model MonitoringRule {
+  id        Int       @id @default(autoincrement())
+  source    String?   @db.VarChar(255)
+  ipAddress String?   @map("ip_address") @db.Inet
+  ruleType  String    @map("rule_type") @db.VarChar(100)
+  priority  String    @db.VarChar(50)
+  expiresAt DateTime  @map("expires_at")
+  active    Boolean   @default(true)
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@index([ipAddress])
+  @@index([active])
+  @@map("monitoring_rules")
+}

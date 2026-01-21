@@ -1,0 +1,9 @@
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+
+# Waiting for edits
+README.md
+PRISMA_MIGRATION.md
