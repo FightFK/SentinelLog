@@ -6,14 +6,14 @@ const { prisma } = require('../config/database');
 
 class AIAnalysisService {
   constructor() {
-    // Initialize LangChain ChatOpenAI model
+    // Initialize OpenAI LLM
     this.llm = new ChatOpenAI({
       modelName: process.env.OPENAI_MODEL || 'gpt-4',
       temperature: 0.3,
       openAIApiKey: process.env.OPENAI_API_KEY,
     });
 
-    // Initialize LangChain OpenAI Embeddings
+    // Initialize OpenAI Embeddings
     this.embeddings = new OpenAIEmbeddings({
       modelName: process.env.OPENAI_EMBEDDING_MODEL || 'text-embedding-ada-002',
       openAIApiKey: process.env.OPENAI_API_KEY,
@@ -91,11 +91,9 @@ Provide your analysis in JSON format with the following structure:
       const analysisResult = await prisma.analysisResult.create({
         data: {
           logId: parseInt(logId),
-          analysisType: 'ai_analysis',
           result: analysis,
           confidence: analysis.confidence || 0,
-          threatLevel: analysis.threat_level,
-          recommendations: analysis.recommendations || []
+          threatLevel: analysis.threat_level
         }
       });
 

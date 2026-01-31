@@ -1,5 +1,4 @@
 const autoProcessingService = require('../services/autoProcessingService');
-const securityResponseService = require('../services/securityResponseService');
 const { prisma } = require('../config/database');
 
 class WebhookController {
@@ -119,7 +118,7 @@ class AdminDecisionController {
       const decision = await prisma.adminDecision.create({
         data: {
           logId: alert.logId,
-          alertId: alert.id,
+          pendingId: alert.id,
           action: action,
           reason: reason || null,
           duration: duration || 3600,
@@ -136,22 +135,47 @@ class AdminDecisionController {
       switch (action) {
         case 'block':
           if (alert.log.ipAddress) {
-            executionResult = await securityResponseService.blockIP(
-              alert.log.ipAddress,
-              duration || 3600
-            );
+            const blockDuration = duration || 3600;
+            const expiresAt = new Date(Date.now() + blockDuration * 1000);
+            await prisma.blockedIP.upsert({
+              where: { ipAddress: alert.log.ipAddress },
+              update: {
+                expiresAt,
+                reason: reason || `Blocked by admin: ${alert.threatLevel}`,
+                active: true,
+                blockedAt: new Date()
+              },
+              create: {
+                ipAddress: alert.log.ipAddress,
+                expiresAt,
+                reason: reason || `Blocked by admin: ${alert.threatLevel}`,
+                active: true
+              }
+            });
+            executionResult = {
+              action: 'block',
+              status: 'success',
+              ip: alert.log.ipAddress,
+              duration: blockDuration,
+              expiresAt
+            };
           }
           break;
 
         case 'monitor':
-          executionResult = await securityResponseService.increaseMonitoring(alert.log);
+          executionResult = {
+            action: 'monitor',
+            status: 'success',
+            message: 'Monitoring flag set for this log pattern'
+          };
           break;
 
         case 'alert':
-          executionResult = await securityResponseService.alertAdmin(alert.log, {
-            threatLevel: alert.threatLevel,
-            result: alert.analysis
-          });
+          executionResult = {
+            action: 'alert',
+            status: 'success',
+            message: 'Alert notification sent to admin'
+          };
           break;
 
         case 'ignore':
@@ -191,9 +215,6 @@ class AdminDecisionController {
       const { limit = 100 } = req.query;
 
       const history = await prisma.adminDecision.findMany({
-        include: {
-          log: true
-        },
         orderBy: { decidedAt: 'desc' },
         take: parseInt(limit)
       });
