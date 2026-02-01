@@ -174,31 +174,42 @@ class AutoProcessingService {
       const analysis = await aiAnalysisService.analyzeLog(log.id);
       logger.info(`🤖 LLM: Threat=${analysis.threatLevel}`);
 
-      // Create pending decision
-      const pendingDecision = await prisma.pendingAdminDecision.create({
-        data: {
-          logId: log.id,
-          analysisId: analysis.id,
-          threatLevel: analysis.threatLevel || 'MEDIUM',
-          analysis: analysis.result,
-          status: 'pending'
-        }
-      });
+      // Only create pending decision if threat level is HIGH or CRITICAL
+      if (['HIGH', 'CRITICAL'].includes(analysis.threatLevel)) {
+        const pendingDecision = await prisma.pendingAdminDecision.create({
+          data: {
+            logId: log.id,
+            analysisId: analysis.id,
+            threatLevel: analysis.threatLevel,
+            analysis: analysis.result,
+            status: 'pending'
+          }
+        });
 
-      // Notify admin (console only for now)
-      this.notifyAdmin(pendingDecision, log, analysis);
+        // Notify admin
+        this.notifyAdmin(pendingDecision, log, analysis);
 
-      logger.info(`📢 Pending decision created (ID: ${pendingDecision.id})`);
+        logger.info(`📢 Pending decision created (ID: ${pendingDecision.id})`);
 
-      return {
-        status: 'pending_admin_decision',
-        log_id: log.id,
-        pending_decision_id: pendingDecision.id,
-        threat_level: analysis.threatLevel,
-        llm_analysis: analysis.result,
-        message: '⏳ New pattern. LLM complete. Awaiting admin decision.',
-        admin_url: `/api/admin/decide/${pendingDecision.id}`
-      };
+        return {
+          status: 'pending_admin_decision',
+          log_id: log.id,
+          pending_decision_id: pendingDecision.id,
+          threat_level: analysis.threatLevel,
+          llm_analysis: analysis.result,
+          message: '⏳ New pattern detected. Awaiting admin decision.'
+        };
+      } else {
+        logger.info(`✅ Threat level ${analysis.threatLevel} - Auto-approved (low risk)`);
+        
+        return {
+          status: 'auto_approved',
+          log_id: log.id,
+          threat_level: analysis.threatLevel,
+          llm_analysis: analysis.result,
+          message: `✅ Low risk (${analysis.threatLevel}) - No admin action needed.`
+        };
+      }
     } catch (error) {
       logger.error('❌ Error requesting admin decision:', error);
       throw error;

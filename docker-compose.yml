@@ -4,15 +4,15 @@ services:
     container_name: agentic_db
     restart: always
     environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: chinnapong
+      POSTGRES_PASSWORD: rakmai
+      POSTGRES_DB: sentinellog
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      test: ["CMD-SHELL", "pg_isready -U chinnapong -d sentinellog"]
       interval: 10s
       timeout: 5s
       retries: 5

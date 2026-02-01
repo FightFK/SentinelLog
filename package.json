@@ -19,8 +19,8 @@
   "author": "FightFK <151952442+FightFK@users.noreply.github.com>",
   "license": "MIT",
   "dependencies": {
-    "@langchain/core": "^0.3.29",
-    "@langchain/openai": "^0.3.18",
+    "@langchain/core": "^1.1.18",
+    "@langchain/openai": "^1.2.4",
     "@prisma/client": "^5.22.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",

@@ -98,9 +98,11 @@ Provide your analysis in JSON format with the following structure:
       });
 
       return {
-        log_id: logId,
-        analysis: analysis,
-        analysis_record: analysisResult
+        id: analysisResult.id,
+        logId: parseInt(logId),
+        result: analysis,
+        confidence: analysis.confidence || 0,
+        threatLevel: analysis.threat_level || 'MEDIUM'
       };
     } catch (error) {
       console.error('Error in AI analysis:', error);
