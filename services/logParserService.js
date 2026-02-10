@@ -2,10 +2,9 @@ const logger = require('../middleware/logger');
 
 class LogParserService {
   constructor() {
-    // NGINX log patterns
+
     this.nginxPattern = /^(\S+) - (\S+) \[([^\]]+)\] "(\S+) ([^"]+) (\S+)" (\d+) (\d+) "([^"]*)" "([^"]*)"/;
     
-    // Attack patterns for detection
     this.attackPatterns = {
       sql_injection: [
         /(\bor\b|\band\b).*?['"]?\s*=\s*['"]?/gi,

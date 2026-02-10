@@ -1,0 +1,104 @@
+{"level":"info","message":"SentinelLog server running on port 3000","timestamp":"2026-02-10T06:26:31.394Z"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-10T06:26:31.397Z"}
+{"level":"info","message":"POST /api/webhook/nginx/batch","timestamp":"2026-02-10T06:35:43.066Z"}
+{"level":"info","message":"POST /api/admin/pending%20","timestamp":"2026-02-10T06:41:49.074Z"}
+{"level":"info","message":"GET /api/admin/pending%20","timestamp":"2026-02-10T06:41:53.671Z"}
+{"level":"info","message":"GET /api/admin/pending%20","timestamp":"2026-02-10T06:42:24.613Z"}
+{"level":"info","message":"GET /api/admin/pending","timestamp":"2026-02-10T06:42:53.862Z"}
+{"level":"info","message":"SentinelLog server running on port 3000","timestamp":"2026-02-10T06:47:53.303Z"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-10T06:47:53.305Z"}
+{"level":"info","message":"SentinelLog server running on port 3000","timestamp":"2026-02-10T06:47:58.669Z"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-10T06:47:58.671Z"}
+{"level":"info","message":"SentinelLog server running on port 3000","timestamp":"2026-02-10T06:48:12.014Z"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-10T06:48:12.016Z"}
+{"level":"info","message":"SentinelLog server running on port 3000","timestamp":"2026-02-10T06:48:13.083Z"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-10T06:48:13.086Z"}
+{"level":"info","message":"SentinelLog server running on port 3000","timestamp":"2026-02-10T06:48:22.695Z"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-10T06:48:22.697Z"}
+{"level":"info","message":"SentinelLog server running on port 3000","timestamp":"2026-02-10T06:48:48.600Z"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-10T06:48:48.602Z"}
+{"level":"info","message":"SentinelLog server running on port 3000","timestamp":"2026-02-10T06:48:57.764Z"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-10T06:48:57.766Z"}
+{"level":"info","message":"SentinelLog server running on port 3000","timestamp":"2026-02-10T06:49:25.785Z"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-10T06:49:25.788Z"}
+{"level":"info","message":"SentinelLog server running on port 3000","timestamp":"2026-02-10T06:51:04.105Z"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-10T06:51:04.107Z"}
+{"level":"info","message":"SentinelLog server running on port 3000","timestamp":"2026-02-10T06:51:08.192Z"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-10T06:51:08.195Z"}
+{"level":"info","message":"SentinelLog server running on port 3000","timestamp":"2026-02-10T06:51:20.541Z"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-10T06:51:20.547Z"}
+{"level":"info","message":"SentinelLog server running on port 3000","timestamp":"2026-02-10T06:51:32.180Z"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-10T06:51:32.182Z"}
+{"level":"info","message":"SentinelLog server running on port 3000","timestamp":"2026-02-10T06:52:01.920Z"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-10T06:52:01.923Z"}
+{"level":"error","message":"SyntaxError: Unexpected token ']', ...\"    },\r\n  ]\r\n}\" is not valid JSON\n    at JSON.parse (<anonymous>)\n    at parse (D:\\PSU\\finalproject\\SentinelLog\\node_modules\\body-parser\\lib\\types\\json.js:72:19)\n    at D:\\PSU\\finalproject\\SentinelLog\\node_modules\\body-parser\\lib\\read.js:162:18\n    at AsyncResource.runInAsyncScope (node:async_hooks:214:14)\n    at invokeCallback (D:\\PSU\\finalproject\\SentinelLog\\node_modules\\raw-body\\index.js:238:16)\n    at done (D:\\PSU\\finalproject\\SentinelLog\\node_modules\\raw-body\\index.js:227:7)\n    at IncomingMessage.onEnd (D:\\PSU\\finalproject\\SentinelLog\\node_modules\\raw-body\\index.js:287:7)\n    at IncomingMessage.emit (node:events:519:28)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)","timestamp":"2026-02-10T06:52:50.768Z"}
+{"level":"info","message":"POST /api/webhook/nginx/batch","timestamp":"2026-02-10T06:53:05.080Z"}
+{"level":"info","message":"SentinelLog server running on port 3000","timestamp":"2026-02-10T06:53:58.298Z"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-10T06:53:58.303Z"}
+{"level":"info","message":"SentinelLog server running on port 3000","timestamp":"2026-02-10T06:54:03.353Z"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-10T06:54:03.355Z"}
+{"level":"info","message":"SentinelLog server running on port 3000","timestamp":"2026-02-10T06:54:10.695Z"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-10T06:54:10.697Z"}
+{"level":"info","message":"GET /api/admin/pending","timestamp":"2026-02-10T06:54:15.408Z"}
+{"level":"info","message":"SentinelLog server running on port 3000","timestamp":"2026-02-10T06:57:53.970Z"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-10T06:57:53.973Z"}
+{"level":"info","message":"SentinelLog server running on port 3000","timestamp":"2026-02-10T06:57:58.626Z"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-10T06:57:58.629Z"}
+{"level":"info","message":"DELETE /api/admin/pending/4","timestamp":"2026-02-10T06:59:32.770Z"}
+{"level":"info","message":"DELETE /api/admin/pending/3","timestamp":"2026-02-10T06:59:46.800Z"}
+{"level":"info","message":"GET /api/admin/pending","timestamp":"2026-02-10T06:59:50.713Z"}
+{"level":"info","message":"POST /api/webhook/nginx/batch","timestamp":"2026-02-10T07:00:01.555Z"}
+{"level":"info","message":"SentinelLog server running on port 3000","timestamp":"2026-02-10T07:01:29.308Z"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-10T07:01:29.311Z"}
+{"level":"info","message":"SentinelLog server running on port 3000","timestamp":"2026-02-10T07:02:32.756Z"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-10T07:02:32.758Z"}
+{"level":"info","message":"POST /api/webhook/nginx/batch","timestamp":"2026-02-10T07:02:36.767Z"}
+{"level":"info","message":"SentinelLog server running on port 3000","timestamp":"2026-02-10T07:03:09.865Z"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-10T07:03:09.867Z"}
+{"level":"info","message":"SentinelLog server running on port 3000","timestamp":"2026-02-10T07:03:16.848Z"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-10T07:03:16.850Z"}
+{"level":"info","message":"SentinelLog server running on port 3000","timestamp":"2026-02-10T07:03:36.219Z"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-10T07:03:36.225Z"}
+{"level":"info","message":"POST /api/webhook/nginx/batch","timestamp":"2026-02-10T07:04:05.246Z"}
+{"level":"info","message":"SentinelLog server running on port 3000","timestamp":"2026-02-10T07:04:50.176Z"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-10T07:04:50.179Z"}
+{"level":"info","message":"SentinelLog server running on port 3000","timestamp":"2026-02-10T07:05:02.967Z"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-10T07:05:02.969Z"}
+{"level":"info","message":"POST /api/webhook/nginx/batch","timestamp":"2026-02-10T07:05:09.061Z"}
+{"level":"info","message":"GET /api/admin/pending","timestamp":"2026-02-10T07:06:01.562Z"}
+{"level":"info","message":"DELETE /api/admin/pending/1","timestamp":"2026-02-10T07:06:24.032Z"}
+{"level":"info","message":"DELETE /api/admin/pending/2","timestamp":"2026-02-10T07:06:25.622Z"}
+{"level":"info","message":"DELETE /api/admin/pending/3","timestamp":"2026-02-10T07:06:27.295Z"}
+{"level":"info","message":"DELETE /api/admin/pending/4","timestamp":"2026-02-10T07:06:28.484Z"}
+{"level":"info","message":"DELETE /api/admin/pending/5","timestamp":"2026-02-10T07:06:30.059Z"}
+{"level":"info","message":"DELETE /api/admin/pending/6","timestamp":"2026-02-10T07:06:32.040Z"}
+{"level":"info","message":"GET /api/admin/pending","timestamp":"2026-02-10T07:06:37.002Z"}
+{"level":"info","message":"POST /api/webhook/nginx/batch","timestamp":"2026-02-10T07:06:41.344Z"}
+{"level":"info","message":"GET /api/admin/pending","timestamp":"2026-02-10T07:07:04.872Z"}
+{"level":"info","message":"SentinelLog server running on port 3000","timestamp":"2026-02-10T07:08:21.887Z"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-10T07:08:21.890Z"}
+{"level":"info","message":"SentinelLog server running on port 3000","timestamp":"2026-02-10T07:08:35.599Z"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-10T07:08:35.601Z"}
+{"level":"info","message":"GET /api/admin/pending","timestamp":"2026-02-10T07:08:48.472Z"}
+{"level":"info","message":"DELETE /api/admin/pending/7","timestamp":"2026-02-10T07:08:57.562Z"}
+{"level":"info","message":"DELETE /api/admin/pending/8","timestamp":"2026-02-10T07:09:01.190Z"}
+{"level":"info","message":"GET /api/admin/pending","timestamp":"2026-02-10T07:09:15.796Z"}
+{"level":"info","message":"POST /api/webhook/nginx/batch","timestamp":"2026-02-10T07:09:20.354Z"}
+{"level":"info","message":"SentinelLog server running on port 3000","timestamp":"2026-02-10T07:10:04.924Z"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-10T07:10:04.926Z"}
+{"level":"info","message":"SentinelLog server running on port 3000","timestamp":"2026-02-10T07:10:07.388Z"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-10T07:10:07.390Z"}
+{"level":"info","message":"SentinelLog server running on port 3000","timestamp":"2026-02-10T07:11:23.837Z"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-10T07:11:23.840Z"}
+{"level":"info","message":"SentinelLog server running on port 3000","timestamp":"2026-02-10T07:14:25.272Z"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-10T07:14:25.274Z"}
+{"level":"info","message":"SentinelLog server running on port 3000","timestamp":"2026-02-10T07:16:56.514Z"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-10T07:16:56.516Z"}
+{"level":"info","message":"SentinelLog server running on port 3000","timestamp":"2026-02-10T07:22:19.383Z"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-10T07:22:19.386Z"}
+{"level":"info","message":"SentinelLog server running on port 3000","timestamp":"2026-02-10T07:37:27.205Z"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-10T07:37:27.207Z"}
+{"level":"info","message":"POST /api/webhook/nginx/batch","timestamp":"2026-02-10T07:37:35.619Z"}
+{"level":"info","message":"POST /api/webhook/nginx/batch","timestamp":"2026-02-10T07:38:34.762Z"}
+{"level":"info","message":"SentinelLog server running on port 3000","timestamp":"2026-02-10T07:58:23.217Z"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-10T07:58:23.219Z"}

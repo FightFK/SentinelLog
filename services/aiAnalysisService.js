@@ -139,30 +139,72 @@ Provide your analysis in JSON format with the following structure:
   // Search similar logs using vector similarity
   async findSimilarLogs(logId, limit = 5) {
     try {
-      const log = await prisma.securityLog.findUnique({
-        where: { id: parseInt(logId) },
-        select: { embedding: true }
-      });
+      // Use raw SQL and cast vector to text (Prisma can't deserialize vector type)
+      const [log] = await prisma.$queryRaw`
+        SELECT embedding::text as embedding 
+        FROM security_logs 
+        WHERE id = ${parseInt(logId)}
+      `;
 
       if (!log || !log.embedding) {
         throw new Error('Log not found or embedding not available');
       }
 
-      // Find similar logs using raw SQL with pgvector
-      const similarLogs = await prisma.$queryRaw`
-        SELECT 
-          id, 
-          timestamp, 
-          source, 
-          severity, 
-          event_type as "eventType", 
-          description,
-          1 - (embedding::vector <=> ${log.embedding}::vector) as similarity
-        FROM security_logs
-        WHERE id != ${parseInt(logId)} AND embedding IS NOT NULL
-        ORDER BY embedding::vector <=> ${log.embedding}::vector
-        LIMIT ${limit}
-      `;
+      // Parse embedding based on its type
+      let embeddingArray;
+      
+      if (Array.isArray(log.embedding)) {
+        // Already an array
+        embeddingArray = log.embedding;
+      } else if (typeof log.embedding === 'string') {
+        // String format: "[0.1,0.2,...]" or "0.1,0.2,..."
+        const cleaned = log.embedding.replace(/^\[|\]$/g, '');
+        embeddingArray = cleaned.split(',').map(Number);
+      } else if (Buffer.isBuffer(log.embedding)) {
+        // Buffer from database - parse as JSON
+        const parsed = JSON.parse(log.embedding.toString());
+        embeddingArray = Array.isArray(parsed) ? parsed : Object.values(parsed);
+      } else if (typeof log.embedding === 'object') {
+        // Object format: {0: 0.1, 1: 0.2, ...}
+        embeddingArray = Object.values(log.embedding).map(Number);
+      } else {
+        throw new Error(`Unsupported embedding format: ${typeof log.embedding}`);
+      }
+
+      // Validate embedding
+      if (!embeddingArray || embeddingArray.length !== 1536) {
+        throw new Error(`Invalid embedding dimension: ${embeddingArray?.length}`);
+      }
+
+      // Format for pgvector
+      const embeddingStr = `[${embeddingArray.join(',')}]`;
+
+      // Try vector search - fallback if embedding column is still TEXT
+      let similarLogs;
+      try {
+        // Attempt pgvector cosine distance operator
+        similarLogs = await prisma.$queryRaw`
+          SELECT 
+            id, 
+            timestamp, 
+            source, 
+            severity, 
+            event_type as "eventType", 
+            description,
+            ip_address as "ipAddress",
+            1 - (embedding <=> ${embeddingStr}::vector) as similarity
+          FROM security_logs
+          WHERE id != ${parseInt(logId)} 
+            AND embedding IS NOT NULL
+          ORDER BY embedding <=> ${embeddingStr}::vector
+          LIMIT ${limit}
+        `;
+      } catch (vectorError) {
+        // Fallback: Database not migrated yet, return empty
+        console.warn('⚠️ Vector search failed. Database needs migration. Run: npx prisma migrate dev');
+        console.warn('Error:', vectorError.message);
+        return [];
+      }
 
       return similarLogs;
     } catch (error) {
@@ -198,13 +240,16 @@ Provide your analysis in JSON format with the following structure:
       
       const embedding = await this.generateEmbedding(text);
 
-      // Store embedding as JSON string (Prisma doesn't fully support pgvector yet)
-      const updatedLog = await prisma.securityLog.update({
-        where: { id: parseInt(logId) },
-        data: { embedding: JSON.stringify(embedding) }
-      });
+      // Store embedding in pgvector format using raw SQL
+      const embeddingStr = `[${embedding.join(',')}]`;
+      
+      await prisma.$executeRaw`
+        UPDATE security_logs 
+        SET embedding = ${embeddingStr}::vector 
+        WHERE id = ${parseInt(logId)}
+      `;
 
-      return updatedLog;
+      return { id: parseInt(logId), embedding_updated: true };
     } catch (error) {
       console.error('Error updating log embedding:', error);
       throw error;

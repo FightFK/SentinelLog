@@ -12,6 +12,41 @@ datasource db {
   extensions = [vector]
 }
 
+// ==================== User Authentication ====================
+
+model User {
+  id           Int       @id @default(autoincrement())
+  email        String    @unique @db.VarChar(255)
+  passwordHash String    @map("password_hash") @db.Text
+  name         String    @db.VarChar(255)
+  role         String    @db.VarChar(50) // admin, analyst, viewer
+  active       Boolean   @default(true)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  lastLogin    DateTime? @map("last_login")
+
+  // Relations
+  adminDecisions AdminDecision[]
+  activityLogs   ActivityLog[]
+
+  @@map("users")
+}
+
+model ActivityLog {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  action      String   @db.VarChar(255)
+  details     Json?    @db.JsonB
+  ipAddress   String?  @map("ip_address") @db.Inet
+  timestamp   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([timestamp])
+  @@map("activity_logs")
+}
+
+
 // ==================== Core Model: Security Logs ====================
 model SecurityLog {
   id          Int       @id @default(autoincrement())
@@ -24,7 +59,7 @@ model SecurityLog {
   userAgent   String?   @map("user_agent") @db.Text
   rawLog      String?   @map("raw_log") @db.Text
   metadata    Json?     @db.JsonB
-  embedding   String?   @db.Text // Vector embedding for similarity search
+  embedding   Unsupported("vector(1536)")? // OpenAI text-embedding-ada-002 dimension
   createdAt   DateTime  @default(now()) @map("created_at")
 
   // Relations
@@ -91,6 +126,7 @@ model PendingAdminDecision {
 // ==================== Admin Decisions (Learning Source) ====================
 model AdminDecision {
   id           Int      @id @default(autoincrement())
+  userId       Int?     @map("user_id")
   logId        Int      @map("log_id")
   pendingId    Int      @map("pending_id")
   action       String   @db.VarChar(50)
@@ -101,6 +137,10 @@ model AdminDecision {
   applied      Boolean  @default(true)
   decidedAt    DateTime @default(now()) @map("decided_at")
 
+  // Relations
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
   @@index([logId])
   @@index([action])
   @@index([decidedAt])

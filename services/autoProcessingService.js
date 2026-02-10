@@ -23,18 +23,34 @@ class AutoProcessingService {
    * Main processing flow
    */
   async processIncomingLog(logData) {
+    let log = null;
+    
     try {
       logger.info('🔄 Processing incoming log...');
 
       // 1. Parse & Save
       const enrichedLog = this.parseAndEnrichLog(logData);
-      const log = await this.saveLog(enrichedLog);
+      log = await this.saveLog(enrichedLog);
 
-      // 2. Generate Embedding
-      await this.generateEmbedding(log);
+      // 2. Generate Embedding (with retry and error handling)
+      try {
+        await this.generateEmbedding(log);
+      } catch (embeddingError) {
+        logger.error('⚠️ Embedding generation failed:', embeddingError.message);
+        // Continue processing even if embedding fails - can be regenerated later
+        // Mark for retry
+        logger.info('⏭️ Continuing without embedding (can regenerate later)');
+      }
 
-      // 3. Search Similar
-      const similarLogs = await aiAnalysisService.findSimilarLogs(log.id, 5);
+      // 3. Search Similar (only if embedding exists)
+      let similarLogs = [];
+      try {
+        similarLogs = await aiAnalysisService.findSimilarLogs(log.id, 5);
+      } catch (searchError) {
+        logger.error('⚠️ Similarity search failed:', searchError.message);
+        // Continue to LLM analysis if search fails
+      }
+
       const hasSimilar = similarLogs.length > 0 && similarLogs[0].similarity >= this.similarityThreshold;
 
       // 4. Decision
@@ -44,7 +60,18 @@ class AutoProcessingService {
         return await this.requestAdminDecision(log);
       }
     } catch (error) {
-      logger.error('❌ Error:', error);
+      logger.error('❌ Error processing log:', error);
+      
+      // Return error response with log ID if available
+      if (log) {
+        return {
+          status: 'error',
+          log_id: log.id,
+          error: error.message,
+          message: 'Log saved but processing failed. Can retry later.'
+        };
+      }
+      
       throw error;
     }
   }
@@ -65,7 +92,7 @@ class AutoProcessingService {
       severity: logData.severity || this.estimateInitialSeverity(logData),
       eventType: logData.event_type || logData.eventType || 'unknown',
       description: logData.description,
-      ipAddress: logData.ip_address || logData.ipAddress,
+      ipAddress: logData.ip_address || logData.ipAddress || logData.client_ip, 
       userAgent: logData.user_agent || logData.userAgent,
       rawLog: logData.raw_log || logData.rawLog || JSON.stringify(logData),
       metadata: logData.metadata || {},
@@ -98,18 +125,54 @@ class AutoProcessingService {
   }
 
   /**
-   * Generate embedding for vector search
+   * Generate embedding for vector search 
    */
-  async generateEmbedding(log) {
+  async generateEmbedding(log, retries = 3) {
     logger.info('🔮 Generating embedding...');
-    const text = `${log.eventType} ${log.description || ''} ${log.rawLog || ''}`;
-    const embedding = await aiAnalysisService.generateEmbedding(text);
     
-    await prisma.securityLog.update({
-      where: { id: log.id },
-      data: { embedding: JSON.stringify(embedding) }
-    });
-    logger.info(`✅ Embedding saved`);
+    const text = `${log.eventType} ${log.description || ''} ${log.rawLog || ''}`.trim();
+    
+    if (!text || text.length < 5) {
+      logger.warn('⚠️ Text too short for embedding, skipping...');
+      return;
+    }
+
+    let lastError = null;
+    
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        const embedding = await aiAnalysisService.generateEmbedding(text);
+        
+        if (!embedding || !Array.isArray(embedding) || embedding.length !== 1536) {
+          throw new Error(`Invalid embedding format (length: ${embedding?.length})`);
+        }
+        
+        // Store in pgvector format using raw SQL
+        const embeddingStr = `[${embedding.join(',')}]`;
+        await prisma.$executeRaw`
+          UPDATE security_logs 
+          SET embedding = ${embeddingStr}::vector 
+          WHERE id = ${log.id}
+        `;
+        
+        logger.info(`✅ Embedding saved (dimension: ${embedding.length})`);
+        return; 
+        
+      } catch (error) {
+        lastError = error;
+        logger.warn(`⚠️ Attempt ${attempt}/${retries} failed: ${error.message}`);
+        
+        if (attempt < retries) {
+          // Wait before retry (exponential backoff)
+          const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+          logger.info(`⏳ Retrying in ${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+    }
+    
+    // All retries failed
+    throw new Error(`Failed to generate embedding after ${retries} attempts: ${lastError.message}`);
   }
 
   /**
@@ -347,6 +410,46 @@ class AutoProcessingService {
       orderBy: { createdAt: 'desc' },
       take: limit
     });
+  }
+
+  /**
+   * Regenerate embeddings for logs without embeddings
+   * Useful for fixing failed embedding generations
+   */
+  async regenerateFailedEmbeddings(limit = 100) {
+    logger.info('🔄 Regenerating failed embeddings...');
+    
+    const logsWithoutEmbedding = await prisma.securityLog.findMany({
+      where: { embedding: null },
+      orderBy: { createdAt: 'desc' },
+      take: limit
+    });
+
+    logger.info(`📊 Found ${logsWithoutEmbedding.length} logs without embeddings`);
+
+    let success = 0;
+    let failed = 0;
+
+    for (const log of logsWithoutEmbedding) {
+      try {
+        await this.generateEmbedding(log);
+        success++;
+        
+        // Add delay to avoid rate limits
+        await new Promise(resolve => setTimeout(resolve, 100));
+      } catch (error) {
+        logger.error(`❌ Failed to regenerate embedding for log ${log.id}:`, error.message);
+        failed++;
+      }
+    }
+
+    logger.info(`✅ Regeneration complete: ${success} success, ${failed} failed`);
+    
+    return {
+      total: logsWithoutEmbedding.length,
+      success,
+      failed
+    };
   }
 }
 

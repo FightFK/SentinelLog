@@ -29,11 +29,25 @@ class WebhookController {
   // Receive batch of nginx logs
   async receiveBatchLogs(req, res, next) {
     try {
-      const { logs } = req.body;
-
-      if (!logs || !Array.isArray(logs)) {
+      let logs;
+      
+      if (Array.isArray(req.body)) {
+        logs = req.body;
+      } else if (req.body.logs && Array.isArray(req.body.logs)) {
+        logs = req.body.logs;
+      } else {
         return res.status(400).json({
-          error: 'logs array is required'
+          error: 'Request body must be an array or object with "logs" array property',
+          examples: {
+            format1: { logs: [{ /* log data */ }] },
+            format2: [{ /* log data */ }]
+          }
+        });
+      }
+
+      if (logs.length === 0) {
+        return res.status(400).json({
+          error: 'Logs array cannot be empty'
         });
       }
 
@@ -256,6 +270,41 @@ class AdminDecisionController {
             count: stat._count.id
           })),
           recent_applications: recentRules
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // Delete/dismiss pending decision
+  async deletePendingDecision(req, res, next) {
+    try {
+      const { alert_id } = req.params;
+
+      // Get the pending alert
+      const alert = await prisma.pendingAdminDecision.findUnique({
+        where: { id: parseInt(alert_id) },
+        include: { log: true }
+      });
+
+      if (!alert) {
+        return res.status(404).json({
+          error: 'Pending decision not found'
+        });
+      }
+
+      // Delete the pending decision
+      await prisma.pendingAdminDecision.delete({
+        where: { id: parseInt(alert_id) }
+      });
+
+      res.json({
+        success: true,
+        data: {
+          id: parseInt(alert_id),
+          logId: alert.logId,
+          message: 'Pending decision dismissed successfully'
         }
       });
     } catch (error) {
