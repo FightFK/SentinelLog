@@ -9,6 +9,8 @@ const logsRoutes = require('./routes/logs');
 const analysisRoutes = require('./routes/analysis');
 const webhookRoutes = require('./routes/webhook');
 const adminRoutes = require('./routes/admin');
+const agentRoutes = require('./routes/agent');
+const agentCommandService = require('./services/agentCommandService');
 
 // Initialize Express app
 const app = express();
@@ -59,6 +61,7 @@ app.use('/api/logs', logsRoutes);
 app.use('/api/analysis', analysisRoutes);
 app.use('/api/webhook', webhookRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/agent', agentRoutes); // Agent endpoints (used by Linux agents)
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -85,6 +88,14 @@ app.use((req, res) => {
 app.listen(PORT, () => {
   logger.info(`SentinelLog server running on port ${PORT}`);
   logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+
+  // Mark agents that haven't sent heartbeat in >10 minutes as disconnected
+  // Run every 2 minutes
+  setInterval(() => {
+    agentCommandService.markStaleAgents(10).catch(err =>
+      logger.error('Stale agent check error:', err.message)
+    );
+  }, 2 * 60 * 1000);
 });
 
 module.exports = app;

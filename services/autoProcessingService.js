@@ -2,6 +2,7 @@ const { prisma } = require('../config/database');
 const aiAnalysisService = require('./aiAnalysisService');
 const logParserService = require('./logParserService');
 const logger = require('../middleware/logger');
+const agentCommandService = require('./agentCommandService');
 
 /**
  * ==================== AUTO PROCESSING SERVICE ====================
@@ -304,6 +305,12 @@ class AutoProcessingService {
               active: true
             }
           });
+          // Push block_ip command to all active agents (broadcast)
+          agentCommandService.pushCommand('block_ip', {
+            ip: log.ipAddress,
+            duration_seconds: duration,
+            reason: `Auto-blocked: ${log.eventType}`
+          }).catch(e => logger.error('Agent push error (block_ip):', e.message));
           logger.info(`🚫 IP ${log.ipAddress} blocked (${duration}s)`);
           return { status: 'success', action: 'block', ip: log.ipAddress, duration };
         }

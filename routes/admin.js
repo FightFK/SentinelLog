@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { adminDecisionController } = require('../controllers/webhookController');
 const autoProcessingService = require('../services/autoProcessingService');
+const { adminAgentController } = require('../controllers/agentController');
+const agentCommandService = require('../services/agentCommandService');
 
 // GET /api/admin/pending - Get pending decisions
 router.get('/pending', adminDecisionController.getPendingDecisions);
@@ -27,6 +29,35 @@ router.post('/regenerate-embeddings', async (req, res, next) => {
       success: true,
       data: result
     });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ==================== Agent Management ====================
+
+// GET /api/admin/agents - List all agents
+router.get('/agents', adminAgentController.listAgents.bind(adminAgentController));
+
+// POST /api/admin/agents/:agent_db_id/command - Send command to specific agent
+// Use agent_db_id = 'broadcast' to send to ALL active agents
+router.post(
+  '/agents/:agent_db_id/command',
+  adminAgentController.sendCommand.bind(adminAgentController)
+);
+
+// GET /api/admin/agents/:agent_db_id/commands - Command history for an agent
+router.get(
+  '/agents/:agent_db_id/commands',
+  adminAgentController.getCommandHistory.bind(adminAgentController)
+);
+
+// POST /api/admin/agents/stale-check - Manually trigger stale agent check
+router.post('/agents/stale-check', async (req, res, next) => {
+  try {
+    const { threshold_minutes = 10 } = req.body;
+    const count = await agentCommandService.markStaleAgents(parseInt(threshold_minutes));
+    res.json({ success: true, data: { marked_disconnected: count } });
   } catch (error) {
     next(error);
   }

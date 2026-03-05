@@ -1,5 +1,7 @@
 const autoProcessingService = require('../services/autoProcessingService');
 const { prisma } = require('../config/database');
+const agentCommandService = require('../services/agentCommandService');
+const logger = require('../middleware/logger');
 
 class WebhookController {
   // Receive nginx logs via webhook
@@ -166,6 +168,12 @@ class AdminDecisionController {
                 active: true
               }
             });
+            // Push block_ip command to all active agents (broadcast)
+            agentCommandService.pushCommand('block_ip', {
+              ip: alert.log.ipAddress,
+              duration_seconds: blockDuration,
+              reason: reason || `Admin blocked: ${alert.threatLevel}`
+            }).catch(e => logger.error('Agent push error (block_ip):', e.message));
             executionResult = {
               action: 'block',
               status: 'success',

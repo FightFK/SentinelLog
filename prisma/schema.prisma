@@ -163,3 +163,45 @@ model AutoAppliedRule {
   @@index([executedAt])
   @@map("auto_applied_rules")
 }
+
+// ==================== Agent Management ====================
+model Agent {
+  id          Int       @id @default(autoincrement())
+  agentId     String    @unique @map("agent_id") @db.VarChar(100) // UUID generated client-side
+  hostname    String    @db.VarChar(255)
+  ipAddress   String?   @map("ip_address") @db.VarChar(50)
+  apiKeyHash  String    @map("api_key_hash") @db.VarChar(255) // bcrypt hash of API key
+  status      String    @default("active") @db.VarChar(50) // active, inactive, disconnected
+  lastSeen    DateTime? @map("last_seen")
+  version     String?   @db.VarChar(50) // agent version
+  metadata    Json?     @db.JsonB // OS info, nginx path, capabilities
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  commands AgentCommand[]
+
+  @@index([status])
+  @@index([lastSeen])
+  @@map("agents")
+}
+
+model AgentCommand {
+  id          Int       @id @default(autoincrement())
+  agentDbId   Int       @map("agent_db_id")
+  commandType String    @map("command_type") @db.VarChar(100) // block_ip, unblock_ip, reload_nginx, run_script
+  payload     Json      @db.JsonB // { ip, duration, reason, script, ... }
+  status      String    @default("pending") @db.VarChar(50) // pending, executing, success, failed, timeout
+  result      Json?     @db.JsonB // execution result from agent
+  createdAt   DateTime  @default(now()) @map("created_at")
+  executedAt  DateTime? @map("executed_at")
+  timeoutAt   DateTime? @map("timeout_at")
+
+  // Relations
+  agent Agent @relation(fields: [agentDbId], references: [id], onDelete: Cascade)
+
+  @@index([agentDbId])
+  @@index([status])
+  @@index([commandType])
+  @@index([createdAt])
+  @@map("agent_commands")
+}
