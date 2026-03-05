@@ -1,7 +1,9 @@
 services:
+
+  # ─── PostgreSQL + pgvector ────────────────────────────────────────
   db:
-    image: ankane/pgvector:latest  
-    container_name: agentic_db
+    image: ankane/pgvector:latest
+    container_name: sentinellog_db
     restart: always
     environment:
       POSTGRES_USER: chinnapong
@@ -16,6 +18,49 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # ─── SentinelLog Backend (Node.js) ───────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: sentinellog_backend
+    restart: always
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      # Override DATABASE_URL ให้ชี้ไปที่ container db แทน localhost
+      DATABASE_URL: "postgresql://chinnapong:rakmai@db:5432/sentinellog"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:3000/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 30s
+
+  # ─── SentinelLog Agent (Python) ──────────────────────────────────
+  agent:
+    build:
+      context: ./agent
+      dockerfile: Dockerfile.agent
+    container_name: sentinellog_agent
+    restart: always
+    env_file:
+      - ./agent/.env
+    environment:
+      # ชี้ไปที่ backend container แทน localhost
+      BACKEND_URL: "http://backend:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    # Agent ต้องการ CAP_NET_ADMIN สำหรับ iptables (ถ้ารันนอก Docker)
+    # ถ้า block IP บน Host ต้องใช้ network_mode: host แทน
+    # network_mode: host
 
 volumes:
   pgdata:

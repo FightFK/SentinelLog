@@ -3,6 +3,11 @@ node_modules/
 
 # Environment variables
 .env
+agent/.env
+
+# Logs
+*.log
+logs/
 
 # Waiting for edits
 README.md

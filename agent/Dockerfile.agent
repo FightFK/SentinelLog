@@ -1,0 +1,20 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# wget สำหรับ health-check ใน entrypoint
+RUN apt-get update && apt-get install -y --no-install-recommends wget \
+    && rm -rf /var/lib/apt/lists/*
+
+# ติดตั้ง dependencies ก่อน (cache layer)
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy source
+COPY . .
+
+# ให้สิทธิ์ entrypoint script
+RUN chmod +x docker-entrypoint.sh
+
+# Agent ไม่ expose port เพราะเป็น polling client
+ENTRYPOINT ["./docker-entrypoint.sh"]

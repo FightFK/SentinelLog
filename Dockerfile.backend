@@ -1,0 +1,27 @@
+# ── Stage 1: Install dependencies ──────────────────────────────────
+FROM node:20-alpine AS deps
+
+WORKDIR /app
+
+COPY package*.json ./
+# ci = reproducible, omit dev deps ใน production
+RUN npm ci --omit=dev
+
+# ── Stage 2: Final image ────────────────────────────────────────────
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy dependencies from deps stage
+COPY --from=deps /app/node_modules ./node_modules
+
+# Copy source code
+COPY . .
+
+# Generate Prisma client (ใช้ node_modules ที่ copy มา)
+RUN npx prisma generate
+
+EXPOSE 3000
+
+# รัน migration ก่อนแล้วค่อย start server
+CMD ["sh", "-c", "npx prisma migrate deploy && node index.js"]

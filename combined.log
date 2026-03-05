@@ -102,3 +102,8 @@
 {"level":"info","message":"POST /api/webhook/nginx/batch","timestamp":"2026-02-10T07:38:34.762Z"}
 {"level":"info","message":"SentinelLog server running on port 3000","timestamp":"2026-02-10T07:58:23.217Z"}
 {"level":"info","message":"Environment: development","timestamp":"2026-02-10T07:58:23.219Z"}
+{"level":"info","message":"SentinelLog server running on port 3000","timestamp":"2026-03-05T08:25:45.886Z"}
+{"level":"info","message":"Environment: development","timestamp":"2026-03-05T08:25:45.889Z"}
+{"level":"info","message":"POST /api/webhook/nginx","timestamp":"2026-03-05T08:26:00.288Z"}
+{"level":"info","message":"POST /api/webhook/nginx/batch","timestamp":"2026-03-05T08:26:08.887Z"}
+{"level":"info","message":"GET /api/admin/pending","timestamp":"2026-03-05T08:27:01.949Z"}
