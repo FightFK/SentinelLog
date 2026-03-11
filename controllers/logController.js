@@ -201,6 +201,121 @@ class LogController {
     }
   }
 
+  // GET /api/logs/dashboard — unified dashboard summary
+  async getDashboard(req, res, next) {
+    try {
+      const [
+        totalLogs,
+        threatAnalysesCount,
+        pendingAlertsCount,
+        threatsByLevel,
+        requestsByMethod,
+        responseStatusCodes,
+        topSourceIPs,
+        topAttackerIPs
+      ] = await Promise.all([
+        // 1. Total logs
+        prisma.securityLog.count(),
+
+        // 2. Logs that have at least one analysis result
+        prisma.securityLog.count({
+          where: { analysisResults: { some: {} } }
+        }),
+
+        // 3. Pending admin decisions
+        prisma.pendingAdminDecision.count({
+          where: { status: 'pending' }
+        }),
+
+        // 4. Threats by level from analysis results
+        prisma.analysisResult.groupBy({
+          by: ['threatLevel'],
+          where: { threatLevel: { not: null } },
+          _count: { id: true },
+          orderBy: { _count: { id: 'desc' } }
+        }),
+
+        // 5. Requests by HTTP method (stored in metadata JSONB)
+        prisma.$queryRaw`
+          SELECT metadata->>'request_method' AS method,
+                 COUNT(*)::int AS count
+          FROM security_logs
+          WHERE metadata->>'request_method' IS NOT NULL
+          GROUP BY method
+          ORDER BY count DESC
+        `,
+
+        // 6. Response status codes (stored in metadata JSONB)
+        prisma.$queryRaw`
+          SELECT metadata->>'status_code' AS status_code,
+                 COUNT(*)::int AS count
+          FROM security_logs
+          WHERE metadata->>'status_code' IS NOT NULL
+          GROUP BY status_code
+          ORDER BY count DESC
+          LIMIT 10
+        `,
+
+        // 7. Top source IPs (all traffic)
+        prisma.$queryRaw`
+          SELECT ip_address AS ip,
+                 COUNT(*)::int AS count
+          FROM security_logs
+          WHERE ip_address IS NOT NULL
+          GROUP BY ip_address
+          ORDER BY count DESC
+          LIMIT 10
+        `,
+
+        // 8. Top attacker IPs (IPs linked to HIGH/MEDIUM threat analysis)
+        prisma.$queryRaw`
+          SELECT sl.ip_address AS ip,
+                 COUNT(DISTINCT ar.id)::int AS threat_count,
+                 MAX(ar.threat_level) AS top_threat_level
+          FROM security_logs sl
+          JOIN analysis_results ar ON ar.log_id = sl.id
+          WHERE ar.threat_level IN ('HIGH', 'MEDIUM')
+            AND sl.ip_address IS NOT NULL
+          GROUP BY sl.ip_address
+          ORDER BY threat_count DESC
+          LIMIT 10
+        `
+      ]);
+
+      // Calculate threats detected count (any HIGH or MEDIUM threat analysis)
+      const threatsDetected = threatsByLevel
+        .filter(t => ['HIGH', 'MEDIUM'].includes(t.threatLevel))
+        .reduce((sum, t) => sum + t._count.id, 0);
+
+      res.json({
+        success: true,
+        data: {
+          summary: {
+            total_logs: totalLogs,
+            threats_detected: {
+              count: threatsDetected,
+              percent: totalLogs > 0
+                ? parseFloat(((threatsDetected / totalLogs) * 100).toFixed(1))
+                : 0
+            },
+            threat_analyses: threatAnalysesCount,
+            pending_alerts: pendingAlertsCount
+          },
+          requests_by_method: requestsByMethod,
+          threats_by_severity: threatsByLevel.map(t => ({
+            threat_level: t.threatLevel,
+            count: t._count.id
+          })),
+          response_status_codes: responseStatusCodes,
+          top_source_ips: topSourceIPs,
+          top_attacker_ips: topAttackerIPs
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   // Delete a log
   async deleteLog(req, res, next) {
     try {

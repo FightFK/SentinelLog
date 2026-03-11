@@ -52,4 +52,11 @@ router.patch(
   authController.updateUser.bind(authController)
 );
 
+router.delete(
+  '/users/:id',
+  authMiddleware,
+  requireRole(['admin']),
+  authController.deleteUser.bind(authController)
+);
+
 module.exports = router;

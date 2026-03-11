@@ -278,6 +278,38 @@ class AuthController {
       next(error);
     }
   }
+
+ async deleteUser(req, res, next) {
+    try {
+      const { id } = req.params;
+      const targetId = parseInt(id);
+
+      if (targetId === req.user.id) {
+        return res.status(400).json({ error: 'Cannot delete your own account' });
+      }
+
+      // ป้องกันลบ admin คนสุดท้าย
+      const target = await prisma.user.findUnique({ where: { id: targetId } });
+      if (!target) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      if (target.role === 'admin') {
+        const adminCount = await prisma.user.count({ where: { role: 'admin' } });
+        if (adminCount <= 1) {
+          return res.status(400).json({ error: 'Cannot delete the last admin account' });
+        }
+      }
+
+      await prisma.user.delete({ where: { id: targetId } });
+      res.json({ success: true, message: 'User deleted' });
+    } catch (error) {
+      if (error.code === 'P2025') {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      next(error);
+    }
+  }
+
 }
 
 module.exports = new AuthController();

@@ -145,6 +145,106 @@ class AnalysisController {
     }
   }
 
+  // GET /api/analysis/overview — all data for Threat Analysis page
+  async getOverview(req, res, next) {
+    try {
+      const { start_date, end_date, severity } = req.query;
+
+      // Build WHERE clause for analysis_results (joined with security_logs)
+      const dateFilter = {};
+      if (start_date || end_date) {
+        dateFilter.analyzedAt = {};
+        if (start_date) dateFilter.analyzedAt.gte = new Date(start_date);
+        if (end_date)   dateFilter.analyzedAt.lte = new Date(end_date);
+      }
+
+      // Optional severity filter maps to threatLevel
+      const severityFilter = severity && severity !== 'All'
+        ? { threatLevel: severity.toUpperCase() }
+        : {};
+
+      const where = { ...dateFilter, ...severityFilter, threatLevel: { not: null } };
+
+      // 1. Threat counts by level
+      const threatsByLevel = await prisma.analysisResult.groupBy({
+        by: ['threatLevel'],
+        where,
+        _count: { id: true }
+      });
+
+      const levelMap = { HIGH: 0, MEDIUM: 0, LOW: 0, NONE: 0 };
+      for (const t of threatsByLevel) {
+        if (t.threatLevel in levelMap) levelMap[t.threatLevel] = t._count.id;
+      }
+      const totalThreats = levelMap.HIGH + levelMap.MEDIUM + levelMap.LOW;
+
+      // 2. Top threat types from metadata->detected_attacks JSONB array
+      //    Use date filter on security_logs.timestamp
+      const dateSQL = start_date || end_date
+        ? `AND sl.timestamp BETWEEN ${ start_date ? `'${new Date(start_date).toISOString()}'` : "'1970-01-01'" } AND ${ end_date ? `'${new Date(end_date).toISOString()}'` : "NOW()" }`
+        : '';
+      const severitySQL = severity && severity !== 'All'
+        ? `AND ar.threat_level = '${severity.toUpperCase().replace(/'/g, "''")}' `
+        : '';
+
+      const topThreatTypes = await prisma.$queryRawUnsafe(`
+        SELECT attack_type, COUNT(*)::int AS count
+        FROM security_logs sl
+        JOIN analysis_results ar ON ar.log_id = sl.id
+        CROSS JOIN LATERAL jsonb_array_elements_text(
+          COALESCE(sl.metadata->'detected_attacks', '[]'::jsonb)
+        ) AS attack_type
+        WHERE attack_type != 'normal_traffic'
+          AND ar.threat_level IS NOT NULL
+          ${dateSQL}
+          ${severitySQL}
+        GROUP BY attack_type
+        ORDER BY count DESC
+        LIMIT 10
+      `);
+
+      // 3. Top attacker IPs
+      const topAttackerIPs = await prisma.$queryRawUnsafe(`
+        SELECT sl.ip_address AS ip,
+               COUNT(DISTINCT ar.id)::int AS threat_count,
+               MAX(ar.threat_level) AS top_threat_level
+        FROM security_logs sl
+        JOIN analysis_results ar ON ar.log_id = sl.id
+        WHERE ar.threat_level IN ('HIGH', 'MEDIUM')
+          AND sl.ip_address IS NOT NULL
+          ${dateSQL}
+        GROUP BY sl.ip_address
+        ORDER BY threat_count DESC
+        LIMIT 10
+      `);
+
+      // 4. Severity distribution with percentages
+      const total = totalThreats || 1; // avoid div by zero
+      const severityDistribution = ['HIGH', 'MEDIUM', 'LOW'].map(level => ({
+        level,
+        count: levelMap[level],
+        percent: parseFloat(((levelMap[level] / total) * 100).toFixed(1))
+      }));
+
+      res.json({
+        success: true,
+        data: {
+          summary: {
+            total_threats: totalThreats,
+            high: levelMap.HIGH,
+            medium: levelMap.MEDIUM,
+            low: levelMap.LOW
+          },
+          severity_distribution: severityDistribution,
+          top_threat_types: topThreatTypes,
+          top_attacker_ips: topAttackerIPs
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   // Update log embedding
   async updateEmbedding(req, res, next) {
     try {

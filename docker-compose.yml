@@ -61,6 +61,7 @@ services:
     # Mount nginx logs จาก host เข้า container (read-only)
     volumes:
       - /var/log/nginx:/var/log/nginx:ro
+      - ./agent/.env:/app/.env:rw 
     # ต้องการ NET_ADMIN + SYS_ADMIN เพื่อ iptables บน host network
     cap_add:
       - NET_ADMIN

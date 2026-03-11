@@ -6,6 +6,9 @@ const { authMiddleware, requireRole } = require('../middleware/auth');
 // ทุก endpoint ต้อง login
 router.use(authMiddleware);
 
+// GET /api/logs/dashboard - Unified dashboard summary  (all roles)
+router.get('/dashboard', logController.getDashboard);
+
 // POST /api/logs - Create a new security log  (analyst, admin)
 router.post('/', requireRole(['admin', 'analyst']), logController.createLog);
 

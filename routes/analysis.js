@@ -21,6 +21,10 @@ router.get('/results/:log_id', analysisController.getAnalysisResults);
 // GET /api/analysis/threats - Get threat summary  (all roles)
 router.get('/threats', analysisController.getThreatSummary);
 
+// GET /api/analysis/overview - Full threat analysis page data  (all roles)
+// Query params: start_date, end_date, severity (HIGH|MEDIUM|LOW|All)
+router.get('/overview', analysisController.getOverview);
+
 // POST /api/analysis/embedding - Update log embedding  (admin only)
 router.post('/embedding', requireRole(['admin']), analysisController.updateEmbedding);
 
