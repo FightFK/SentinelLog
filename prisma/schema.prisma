@@ -12,6 +12,42 @@ datasource db {
   extensions = [vector]
 }
 
+// ==================== User Authentication ====================
+
+model User {
+  id           Int       @id @default(autoincrement())
+  email        String    @unique @db.VarChar(255)
+  passwordHash String    @map("password_hash") @db.Text
+  name         String    @db.VarChar(255)
+  role         String    @db.VarChar(50) // admin, analyst, viewer
+  active       Boolean   @default(true)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  lastLogin    DateTime? @map("last_login")
+
+  // Relations
+  adminDecisions AdminDecision[]
+  activityLogs   ActivityLog[]
+
+  @@map("users")
+}
+
+model ActivityLog {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  action      String   @db.VarChar(255)
+  details     Json?    @db.JsonB
+  ipAddress   String?  @map("ip_address") @db.Inet
+  timestamp   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([timestamp])
+  @@map("activity_logs")
+}
+
+
+// ==================== Core Model: Security Logs ====================
 model SecurityLog {
   id          Int       @id @default(autoincrement())
   timestamp   DateTime  @default(now())
@@ -23,28 +59,28 @@ model SecurityLog {
   userAgent   String?   @map("user_agent") @db.Text
   rawLog      String?   @map("raw_log") @db.Text
   metadata    Json?     @db.JsonB
-  embedding   String?   @db.Text // Store as text, pgvector extension
+  embedding   Unsupported("vector(1536)")? // OpenAI text-embedding-ada-002 dimension
   createdAt   DateTime  @default(now()) @map("created_at")
 
   // Relations
-  analysisResults   AnalysisResult[]
-  securityResponses SecurityResponse[]
-  securityIncidents SecurityIncident[]
+  analysisResults        AnalysisResult[]
+  pendingAdminDecisions  PendingAdminDecision[]
+  autoAppliedRules       AutoAppliedRule[]
 
   @@index([timestamp])
   @@index([severity])
   @@index([eventType])
+  @@index([ipAddress])
   @@map("security_logs")
 }
 
+// ==================== LLM Analysis Results ====================
 model AnalysisResult {
   id              Int         @id @default(autoincrement())
   logId           Int         @map("log_id")
-  analysisType    String      @map("analysis_type") @db.VarChar(100)
-  result          Json        @db.JsonB
+  result          Json        @db.JsonB // LLM response: threat_level, attack_type, indicators, recommendations
   confidence      Float?
   threatLevel     String?     @map("threat_level") @db.VarChar(50)
-  recommendations Json?       @db.JsonB
   analyzedAt      DateTime    @default(now()) @map("analyzed_at")
 
   // Relations
@@ -55,84 +91,117 @@ model AnalysisResult {
   @@map("analysis_results")
 }
 
-model SecurityResponse {
-  id              Int      @id @default(autoincrement())
-  logId           Int      @map("log_id")
-  threatLevel     String   @map("threat_level") @db.VarChar(50)
-  actionsExecuted Json     @map("actions_executed") @db.JsonB
-  autoBlocked     Boolean  @map("auto_blocked") @default(false)
-  executedAt      DateTime @default(now()) @map("executed_at")
-
-  // Relations
-  securityLog SecurityLog @relation(fields: [logId], references: [id], onDelete: Cascade)
-
-  @@index([logId])
-  @@index([threatLevel])
-  @@map("security_responses")
-}
-
+// ==================== IP Blocking ====================
 model BlockedIP {
   id          Int       @id @default(autoincrement())
   ipAddress   String    @map("ip_address") @db.Inet
   blockedAt   DateTime  @map("blocked_at") @default(now())
   expiresAt   DateTime  @map("expires_at")
-  unblockedAt DateTime? @map("unblocked_at")
   reason      String?   @db.Text
   active      Boolean   @default(true)
 
-  @@index([ipAddress])
+  @@unique([ipAddress])
   @@index([active])
   @@map("blocked_ips")
 }
 
-model SecurityIncident {
-  id              Int       @id @default(autoincrement())
-  logId           Int       @map("log_id")
-  incidentType    String    @map("incident_type") @db.VarChar(100)
-  severity        String    @db.VarChar(50)
-  description     String    @db.Text
-  ipAddress       String?   @map("ip_address") @db.Inet
-  indicators      Json      @db.JsonB
-  recommendations Json      @db.JsonB
-  status          String    @db.VarChar(50) // open, investigating, resolved, closed
-  resolution      String?   @db.Text
-  detectedAt      DateTime  @map("detected_at")
-  closedAt        DateTime? @map("closed_at")
+model PendingAdminDecision {
+  id         Int       @id @default(autoincrement())
+  logId      Int       @map("log_id")
+  analysisId Int       @map("analysis_id")
+  threatLevel String   @map("threat_level") @db.VarChar(50)
+  analysis   Json      @db.JsonB
+  status     String    @db.VarChar(50) // pending, resolved
+  createdAt  DateTime  @default(now()) @map("created_at")
+  resolvedAt DateTime? @map("resolved_at")
 
   // Relations
   log SecurityLog @relation(fields: [logId], references: [id], onDelete: Cascade)
 
   @@index([logId])
   @@index([status])
-  @@index([severity])
-  @@map("security_incidents")
+  @@map("pending_admin_decisions")
 }
 
-model AdminAlert {
-  id       Int      @id @default(autoincrement())
-  logId    Int      @map("log_id")
-  severity String   @db.VarChar(50)
-  message  String   @db.Text
-  alertData Json    @map("alert_data") @db.JsonB
-  sentAt   DateTime @map("sent_at") @default(now())
-  readAt   DateTime? @map("read_at")
+// ==================== Admin Decisions (Learning Source) ====================
+model AdminDecision {
+  id           Int      @id @default(autoincrement())
+  userId       Int?     @map("user_id")
+  logId        Int      @map("log_id")
+  pendingId    Int      @map("pending_id")
+  action       String   @db.VarChar(50)
+  reason       String?  @db.Text
+  duration     Int?     @default(3600)
+  threatLevel  String   @map("threat_level") @db.VarChar(50)
+  analysisData Json     @map("analysis_data") @db.JsonB
+  applied      Boolean  @default(true)
+  decidedAt    DateTime @default(now()) @map("decided_at")
+
+  // Relations
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([logId])
+  @@index([action])
+  @@index([decidedAt])
+  @@map("admin_decisions")
+}
+// ==================== Auto-Applied Rules (PATH A) ====================
+model AutoAppliedRule {
+  id               Int      @id @default(autoincrement())
+  logId            Int      @map("log_id")
+  sourceDecisionId Int      @map("source_decision_id")
+  sourceLogId      Int      @map("source_log_id")
+  similarity       Float
+  actionTaken      String   @map("action_taken") @db.VarChar(50)
+  executedAt       DateTime @default(now()) @map("executed_at")
+
+  log SecurityLog @relation(fields: [logId], references: [id], onDelete: Cascade)
 
   @@index([logId])
-  @@index([sentAt])
-  @@map("admin_alerts")
+  @@index([actionTaken])
+  @@index([executedAt])
+  @@map("auto_applied_rules")
 }
 
-model MonitoringRule {
-  id        Int       @id @default(autoincrement())
-  source    String?   @db.VarChar(255)
-  ipAddress String?   @map("ip_address") @db.Inet
-  ruleType  String    @map("rule_type") @db.VarChar(100)
-  priority  String    @db.VarChar(50)
-  expiresAt DateTime  @map("expires_at")
-  active    Boolean   @default(true)
-  createdAt DateTime  @default(now()) @map("created_at")
+// ==================== Agent Management ====================
+model Agent {
+  id          Int       @id @default(autoincrement())
+  agentId     String    @unique @map("agent_id") @db.VarChar(100) // UUID generated client-side
+  hostname    String    @db.VarChar(255)
+  ipAddress   String?   @map("ip_address") @db.VarChar(50)
+  apiKeyHash  String    @map("api_key_hash") @db.VarChar(255) // bcrypt hash of API key
+  status      String    @default("active") @db.VarChar(50) // active, inactive, disconnected
+  lastSeen    DateTime? @map("last_seen")
+  version     String?   @db.VarChar(50) // agent version
+  metadata    Json?     @db.JsonB // OS info, nginx path, capabilities
+  createdAt   DateTime  @default(now()) @map("created_at")
 
-  @@index([ipAddress])
-  @@index([active])
-  @@map("monitoring_rules")
+  // Relations
+  commands AgentCommand[]
+
+  @@index([status])
+  @@index([lastSeen])
+  @@map("agents")
+}
+
+model AgentCommand {
+  id          Int       @id @default(autoincrement())
+  agentDbId   Int       @map("agent_db_id")
+  commandType String    @map("command_type") @db.VarChar(100) // block_ip, unblock_ip, reload_nginx, run_script
+  payload     Json      @db.JsonB // { ip, duration, reason, script, ... }
+  status      String    @default("pending") @db.VarChar(50) // pending, executing, success, failed, timeout
+  result      Json?     @db.JsonB // execution result from agent
+  createdAt   DateTime  @default(now()) @map("created_at")
+  executedAt  DateTime? @map("executed_at")
+  timeoutAt   DateTime? @map("timeout_at")
+
+  // Relations
+  agent Agent @relation(fields: [agentDbId], references: [id], onDelete: Cascade)
+
+  @@index([agentDbId])
+  @@index([status])
+  @@index([commandType])
+  @@index([createdAt])
+  @@map("agent_commands")
 }

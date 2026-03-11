@@ -1,0 +1,41 @@
+[Unit]
+Description=SentinelLog Agent - Security Log Monitor
+Documentation=https://github.com/FightFK/SentinelLog
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=sentinel
+Group=sentinel
+
+# Working directory (ปรับ path ตามที่ copy agent ไว้)
+WorkingDirectory=/opt/sentinel-agent
+
+# รัน agent
+ExecStart=/opt/sentinel-agent/venv/bin/python3 /opt/sentinel-agent/sentinel_agent.py
+
+# Restart policy
+Restart=always
+RestartSec=10
+StartLimitIntervalSec=120
+StartLimitBurst=5
+
+# Security hardening
+NoNewPrivileges=false
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/opt/sentinel-agent /var/log/nginx
+# ถ้าใช้ iptables ต้องการ CAP_NET_ADMIN
+AmbientCapabilities=CAP_NET_ADMIN
+
+# Logging to journal
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=sentinel-agent
+
+# Environment
+EnvironmentFile=/opt/sentinel-agent/.env
+
+[Install]
+WantedBy=multi-user.target
