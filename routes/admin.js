@@ -4,9 +4,17 @@ const { adminDecisionController } = require('../controllers/webhookController');
 const autoProcessingService = require('../services/autoProcessingService');
 const { adminAgentController } = require('../controllers/agentController');
 const agentCommandService = require('../services/agentCommandService');
+const { authMiddleware, requireRole } = require('../middleware/auth');
+
+// ทุก endpoint ใน /api/admin ต้อง login + เป็น admin
+router.use(authMiddleware);
+router.use(requireRole(['admin']));
 
 // GET /api/admin/pending - Get pending decisions
 router.get('/pending', adminDecisionController.getPendingDecisions);
+
+// GET /api/admin/pending/:alert_id - Get a single pending alert by ID
+router.get('/pending/:alert_id', adminDecisionController.getPendingById.bind(adminDecisionController));
 
 // POST /api/admin/decide/:alert_id - Make a decision on pending alert
 router.post('/decide/:alert_id', adminDecisionController.makeDecision);

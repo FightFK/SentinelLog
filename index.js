@@ -10,6 +10,7 @@ const analysisRoutes = require('./routes/analysis');
 const webhookRoutes = require('./routes/webhook');
 const adminRoutes = require('./routes/admin');
 const agentRoutes = require('./routes/agent');
+const authRoutes = require('./routes/auth');
 const agentCommandService = require('./services/agentCommandService');
 
 // Initialize Express app
@@ -57,11 +58,12 @@ app.get('/health', (req, res) => {
 });
 
 // API routes
-app.use('/api/logs', logsRoutes);
-app.use('/api/analysis', analysisRoutes);
-app.use('/api/webhook', webhookRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/agent', agentRoutes); // Agent endpoints (used by Linux agents)
+app.use('/api/auth', authRoutes);     // 🔓 public login/register
+app.use('/api/logs', logsRoutes);       // 🔒 authMiddleware inside
+app.use('/api/analysis', analysisRoutes); // 🔒 authMiddleware inside
+app.use('/api/webhook', webhookRoutes); // 🤖 agent only (no JWT)
+app.use('/api/admin', adminRoutes);     // 🔒 admin role only
+app.use('/api/agent', agentRoutes);     // 🤖 X-Agent-Key auth
 
 // Error handling middleware
 app.use((err, req, res, next) => {

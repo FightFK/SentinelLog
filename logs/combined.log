@@ -409,3 +409,69 @@
 {"level":"info","message":"❌ No similar log. Running LLM analysis...","service":"sentinel-log","timestamp":"2026-02-10 14:38:47"}
 {"level":"info","message":"🤖 LLM: Threat=LOW","service":"sentinel-log","timestamp":"2026-02-10 14:38:54"}
 {"level":"info","message":"✅ Threat level LOW - Auto-approved (low risk)","service":"sentinel-log","timestamp":"2026-02-10 14:38:54"}
+{"level":"info","message":"🔄 Processing incoming log...","service":"sentinel-log","timestamp":"2026-03-05 15:26:00"}
+{"level":"info","message":"✅ Log saved (ID: 22)","service":"sentinel-log","timestamp":"2026-03-05 15:26:00"}
+{"level":"info","message":"🔮 Generating embedding...","service":"sentinel-log","timestamp":"2026-03-05 15:26:00"}
+{"level":"info","message":"✅ Embedding saved (dimension: 1536)","service":"sentinel-log","timestamp":"2026-03-05 15:26:03"}
+{"level":"info","message":"✅ Similar log found (100.0%)","service":"sentinel-log","timestamp":"2026-03-05 15:26:03"}
+{"level":"warn","message":"⚠️ No admin decision found for similar log","service":"sentinel-log","timestamp":"2026-03-05 15:26:03"}
+{"level":"info","message":"❌ No similar log. Running LLM analysis...","service":"sentinel-log","timestamp":"2026-03-05 15:26:03"}
+{"level":"info","message":"🔄 Processing incoming log...","service":"sentinel-log","timestamp":"2026-03-05 15:26:08"}
+{"level":"info","message":"✅ Log saved (ID: 23)","service":"sentinel-log","timestamp":"2026-03-05 15:26:08"}
+{"level":"info","message":"🔮 Generating embedding...","service":"sentinel-log","timestamp":"2026-03-05 15:26:08"}
+{"level":"info","message":"✅ Embedding saved (dimension: 1536)","service":"sentinel-log","timestamp":"2026-03-05 15:26:09"}
+{"level":"info","message":"✅ Similar log found (100.0%)","service":"sentinel-log","timestamp":"2026-03-05 15:26:09"}
+{"level":"warn","message":"⚠️ No admin decision found for similar log","service":"sentinel-log","timestamp":"2026-03-05 15:26:09"}
+{"level":"info","message":"❌ No similar log. Running LLM analysis...","service":"sentinel-log","timestamp":"2026-03-05 15:26:09"}
+{"level":"info","message":"🤖 LLM: Threat=HIGH","service":"sentinel-log","timestamp":"2026-03-05 15:26:13"}
+{"level":"info","message":"\n============================================================","service":"sentinel-log","timestamp":"2026-03-05 15:26:13"}
+{"level":"info","message":"🔔 ADMIN NOTIFICATION","service":"sentinel-log","timestamp":"2026-03-05 15:26:13"}
+{"level":"info","message":"============================================================","service":"sentinel-log","timestamp":"2026-03-05 15:26:13"}
+{"level":"info","message":"📋 Pending Decision ID: 15","service":"sentinel-log","timestamp":"2026-03-05 15:26:13"}
+{"level":"info","message":"🆔 Log ID: 22","service":"sentinel-log","timestamp":"2026-03-05 15:26:13"}
+{"level":"info","message":"⚠️  Threat Level: HIGH","service":"sentinel-log","timestamp":"2026-03-05 15:26:13"}
+{"level":"info","message":"🌐 IP Address: 192.168.1.102","service":"sentinel-log","timestamp":"2026-03-05 15:26:13"}
+{"level":"info","message":"📝 Event Type: unknown","service":"sentinel-log","timestamp":"2026-03-05 15:26:13"}
+{"level":"info","message":"🔗 Decision URL: /api/admin/decide/15","service":"sentinel-log","timestamp":"2026-03-05 15:26:13"}
+{"level":"info","message":"============================================================\n","service":"sentinel-log","timestamp":"2026-03-05 15:26:13"}
+{"level":"info","message":"📢 Pending decision created (ID: 15)","service":"sentinel-log","timestamp":"2026-03-05 15:26:13"}
+{"level":"info","message":"🤖 LLM: Threat=HIGH","service":"sentinel-log","timestamp":"2026-03-05 15:26:15"}
+{"level":"info","message":"\n============================================================","service":"sentinel-log","timestamp":"2026-03-05 15:26:15"}
+{"level":"info","message":"🔔 ADMIN NOTIFICATION","service":"sentinel-log","timestamp":"2026-03-05 15:26:15"}
+{"level":"info","message":"============================================================","service":"sentinel-log","timestamp":"2026-03-05 15:26:15"}
+{"level":"info","message":"📋 Pending Decision ID: 16","service":"sentinel-log","timestamp":"2026-03-05 15:26:15"}
+{"level":"info","message":"🆔 Log ID: 23","service":"sentinel-log","timestamp":"2026-03-05 15:26:15"}
+{"level":"info","message":"⚠️  Threat Level: HIGH","service":"sentinel-log","timestamp":"2026-03-05 15:26:15"}
+{"level":"info","message":"🌐 IP Address: 192.168.1.102","service":"sentinel-log","timestamp":"2026-03-05 15:26:15"}
+{"level":"info","message":"📝 Event Type: unknown","service":"sentinel-log","timestamp":"2026-03-05 15:26:15"}
+{"level":"info","message":"🔗 Decision URL: /api/admin/decide/16","service":"sentinel-log","timestamp":"2026-03-05 15:26:15"}
+{"level":"info","message":"============================================================\n","service":"sentinel-log","timestamp":"2026-03-05 15:26:15"}
+{"level":"info","message":"📢 Pending decision created (ID: 16)","service":"sentinel-log","timestamp":"2026-03-05 15:26:15"}
+{"level":"info","message":"🔄 Processing incoming log...","service":"sentinel-log","timestamp":"2026-03-05 15:26:15"}
+{"level":"info","message":"✅ Log saved (ID: 24)","service":"sentinel-log","timestamp":"2026-03-05 15:26:15"}
+{"level":"info","message":"🔮 Generating embedding...","service":"sentinel-log","timestamp":"2026-03-05 15:26:15"}
+{"level":"info","message":"✅ Embedding saved (dimension: 1536)","service":"sentinel-log","timestamp":"2026-03-05 15:26:15"}
+{"level":"info","message":"✅ Similar log found (100.0%)","service":"sentinel-log","timestamp":"2026-03-05 15:26:15"}
+{"level":"warn","message":"⚠️ No admin decision found for similar log","service":"sentinel-log","timestamp":"2026-03-05 15:26:15"}
+{"level":"info","message":"❌ No similar log. Running LLM analysis...","service":"sentinel-log","timestamp":"2026-03-05 15:26:15"}
+{"level":"info","message":"🤖 LLM: Threat=HIGH","service":"sentinel-log","timestamp":"2026-03-05 15:26:22"}
+{"level":"info","message":"\n============================================================","service":"sentinel-log","timestamp":"2026-03-05 15:26:22"}
+{"level":"info","message":"🔔 ADMIN NOTIFICATION","service":"sentinel-log","timestamp":"2026-03-05 15:26:22"}
+{"level":"info","message":"============================================================","service":"sentinel-log","timestamp":"2026-03-05 15:26:22"}
+{"level":"info","message":"📋 Pending Decision ID: 17","service":"sentinel-log","timestamp":"2026-03-05 15:26:22"}
+{"level":"info","message":"🆔 Log ID: 24","service":"sentinel-log","timestamp":"2026-03-05 15:26:22"}
+{"level":"info","message":"⚠️  Threat Level: HIGH","service":"sentinel-log","timestamp":"2026-03-05 15:26:22"}
+{"level":"info","message":"🌐 IP Address: 192.168.1.102","service":"sentinel-log","timestamp":"2026-03-05 15:26:22"}
+{"level":"info","message":"📝 Event Type: unknown","service":"sentinel-log","timestamp":"2026-03-05 15:26:22"}
+{"level":"info","message":"🔗 Decision URL: /api/admin/decide/17","service":"sentinel-log","timestamp":"2026-03-05 15:26:22"}
+{"level":"info","message":"============================================================\n","service":"sentinel-log","timestamp":"2026-03-05 15:26:22"}
+{"level":"info","message":"📢 Pending decision created (ID: 17)","service":"sentinel-log","timestamp":"2026-03-05 15:26:22"}
+{"level":"info","message":"🔄 Processing incoming log...","service":"sentinel-log","timestamp":"2026-03-05 15:26:22"}
+{"level":"info","message":"✅ Log saved (ID: 25)","service":"sentinel-log","timestamp":"2026-03-05 15:26:22"}
+{"level":"info","message":"🔮 Generating embedding...","service":"sentinel-log","timestamp":"2026-03-05 15:26:22"}
+{"level":"info","message":"✅ Embedding saved (dimension: 1536)","service":"sentinel-log","timestamp":"2026-03-05 15:26:25"}
+{"level":"info","message":"✅ Similar log found (100.0%)","service":"sentinel-log","timestamp":"2026-03-05 15:26:25"}
+{"level":"warn","message":"⚠️ No admin decision found for similar log","service":"sentinel-log","timestamp":"2026-03-05 15:26:25"}
+{"level":"info","message":"❌ No similar log. Running LLM analysis...","service":"sentinel-log","timestamp":"2026-03-05 15:26:25"}
+{"level":"info","message":"🤖 LLM: Threat=LOW","service":"sentinel-log","timestamp":"2026-03-05 15:26:36"}
+{"level":"info","message":"✅ Threat level LOW - Auto-approved (low risk)","service":"sentinel-log","timestamp":"2026-03-05 15:26:36"}

@@ -100,6 +100,32 @@ class AdminDecisionController {
     }
   }
 
+  // Get a single pending decision by ID
+  async getPendingById(req, res, next) {
+    try {
+      const { alert_id } = req.params;
+
+      const alert = await prisma.pendingAdminDecision.findUnique({
+        where: { id: parseInt(alert_id) },
+        include: { log: true }
+      });
+
+      if (!alert) {
+        return res.status(404).json({
+          success: false,
+          error: 'Alert not found'
+        });
+      }
+
+      res.json({
+        success: true,
+        data: alert
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   // Admin makes a decision
   async makeDecision(req, res, next) {
     try {
