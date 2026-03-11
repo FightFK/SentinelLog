@@ -53,14 +53,20 @@ services:
     env_file:
       - ./agent/.env
     environment:
-      # ชี้ไปที่ backend container แทน localhost
-      BACKEND_URL: "http://backend:3000"
+      # network_mode: host → backend อยู่ที่ localhost:3000 ของ host
+      BACKEND_URL: "http://localhost:3000"
     depends_on:
       backend:
         condition: service_healthy
-    # Agent ต้องการ CAP_NET_ADMIN สำหรับ iptables (ถ้ารันนอก Docker)
-    # ถ้า block IP บน Host ต้องใช้ network_mode: host แทน
-    # network_mode: host
+    # Mount nginx logs จาก host เข้า container (read-only)
+    volumes:
+      - /var/log/nginx:/var/log/nginx:ro
+    # ต้องการ NET_ADMIN + SYS_ADMIN เพื่อ iptables บน host network
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    # ใช้ network namespace ของ host เพื่อให้ iptables กระทบ host จริง
+    network_mode: host
 
 volumes:
   pgdata:
